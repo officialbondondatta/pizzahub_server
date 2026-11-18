@@ -4,10 +4,43 @@ import cors from "cors";
 import { MongoClient } from "mongodb";
 
 dotenv.config();
-
 const app = express();
 app.use(cors());
-const PORT = process.env.PORT || 8000;
+
+
+
+const PORT = process.env.PORT || 8001;
+
+//mongodb_connection
+
+const client = new MongoClient(process.env.MONGODB_URI);
+
+const connectToMongoDB = async () => {
+    try {
+        await client.connect();
+        console.log("You successfully connected to MongoDB!");
+        return client;
+    } catch (err) {
+        console.dir(err);
+    }
+}
+
+const mongoClient = await connectToMongoDB();
+const db = mongoClient.db("pizzahub");
+const users = db.collection("users");
+
+
+//user routes
+app.get("/users", async (req, res) => {
+    try {
+        const allUsers = await users.find({}).toArray();
+        res.json(allUsers);
+    } catch (err) {
+        console.dir(err);
+        res.status(500).send("Error fetching users");
+    }
+});
+
 
 
 //home route
