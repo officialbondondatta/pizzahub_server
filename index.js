@@ -42,6 +42,27 @@ app.get("/users", async (req, res) => {
     }
 });
 
+app.patch("/users/:id", async (req, res) => {
+    const { id } = req.params;
+    const data = req.body;
+    try {
+        const result = await users.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { name: data.name, image: data.image } },
+        );
+        if (result.matchedCount === 0) {
+            res.status(404).send("User not found");
+        } else {
+            res.send("User updated successfully");
+        }
+    } catch (err) {
+        console.dir(err);
+        res.status(500).send("Error updating user");
+    }
+});
+
+
+
 
 
 //home route
