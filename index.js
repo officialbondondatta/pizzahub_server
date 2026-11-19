@@ -30,7 +30,7 @@ const connectToMongoDB = async () => {
 
 const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("pizzahub");
-const users = db.collection("users");
+const users = db.collection("user");
 const sessions = db.collection("session")
 const menuitems = db.collection("menuitems")
 
@@ -63,7 +63,7 @@ const verifyToken = async (req, res, next) => {
         return
     }
     req.user = user
-
+    console.log(user)
     next()
 }
 
@@ -73,6 +73,7 @@ const verifyVendor = async (req, res, next) => {
         res.status(401).send({ message: "Unauthorized" })
         return
     }
+    console.log("verified vendor")
     next()
 }
 const verifyAdmin = async (req, res, next) => {
