@@ -133,8 +133,17 @@ app.post('/menu-items', verifyToken, verifyVendor, async (req, res) => {
     res.send(result)
 })
 
+app.get('/menu-items', async (req, res) => {
+    const result = await menuitems.find({}).toArray()
+    res.send(result)
+})
 
-
+app.get('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
+    const id = req.params.id
+    const query = { '_id': ObjectId(id) }
+    const result = await menuitems.find(query).toArray()
+    res.send(result)
+})
 
 //home route
 app.get("/", (req, res) => {
