@@ -144,6 +144,13 @@ app.get('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
     res.send(result)
 })
 
+app.get('/menu-items/details/:id', verifyToken, async (req, res) => {
+    const itemId = req.params.id
+    const query = { '_id': new ObjectId(itemId) }
+    const result = await menuitems.findOne(query)
+    res.send(result)
+})
+
 //home route
 app.get("/", (req, res) => {
     res.send("Welcome to PizzaHub API");
