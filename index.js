@@ -42,7 +42,7 @@ const verifyToken = async (req, res, next) => {
         return
     }
 
-    const token = authHeader.spilt(' ')[1]
+    const token = authHeader.split(' ')[1]
     if (!token) {
         res.status(401).send({ message: "Unauthorized" })
         return
@@ -69,7 +69,7 @@ const verifyToken = async (req, res, next) => {
 
 const verifyVendor = async (req, res, next) => {
     const user = req.user
-    if (!user.role !== "vendor") {
+    if (user.role !== "vendor") {
         res.status(401).send({ message: "Unauthorized" })
         return
     }
@@ -77,7 +77,7 @@ const verifyVendor = async (req, res, next) => {
 }
 const verifyAdmin = async (req, res, next) => {
     const user = req.user
-    if (!user.role !== "admin") {
+    if (user.role !== "admin") {
         res.status(401).send({ message: "Unauthorized" })
         return
     }
@@ -85,7 +85,7 @@ const verifyAdmin = async (req, res, next) => {
 }
 const verifyCustomer = async (req, res, next) => {
     const user = req.user
-    if (!user.role !== "customer") {
+    if (user.role !== "customer") {
         res.status(401).send({ message: "Unauthorized" })
         return
     }
