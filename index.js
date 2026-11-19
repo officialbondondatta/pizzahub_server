@@ -139,9 +139,8 @@ app.get('/menu-items', async (req, res) => {
 })
 
 app.get('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
-    const id = req.params.id
-    const query = { '_id': ObjectId(id) }
-    const result = await menuitems.find(query).toArray()
+    const userId = req.params.id
+    const result = await menuitems.find({ userId }).toArray()
     res.send(result)
 })
 
