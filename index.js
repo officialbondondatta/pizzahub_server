@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 
 dotenv.config();
 const app = express();
@@ -26,13 +26,74 @@ const connectToMongoDB = async () => {
     }
 }
 
+//mondodb database
+
 const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("pizzahub");
 const users = db.collection("users");
+const sessions = db.collection("session")
+const menuitems = db.collection("menuitems")
 
+
+const verifyToken = async (req, res, next) => {
+    const authHeader = req.headers.authorization
+    if (!authHeader) {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+
+    const token = authHeader.spilt(' ')[1]
+    if (!token) {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+
+    const query = { token }
+    const session = await sessions.findOne(query)
+    if (!session) {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+    const userId = session.userId
+
+    const userQuery = { '_id': new ObjectId(userId) }
+    const user = await users.findOne(userQuery)
+    if (!user) {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+    req.user = user
+
+    next()
+}
+
+const verifyVendor = async (req, res, next) => {
+    const user = req.user
+    if (!user.role !== "vendor") {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+    next()
+}
+const verifyAdmin = async (req, res, next) => {
+    const user = req.user
+    if (!user.role !== "admin") {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+    next()
+}
+const verifyCustomer = async (req, res, next) => {
+    const user = req.user
+    if (!user.role !== "customer") {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+    next()
+}
 
 //user routes
-app.get("/users", async (req, res) => {
+app.get("/users", verifyToken, async (req, res) => {
     try {
         const allUsers = await users.find({}).toArray();
         res.json(allUsers);
@@ -42,7 +103,7 @@ app.get("/users", async (req, res) => {
     }
 });
 
-app.patch("/users/:id", async (req, res) => {
+app.patch("/users/:id", verifyToken, async (req, res) => {
     const { id } = req.params;
     const data = req.body;
     try {
@@ -61,6 +122,15 @@ app.patch("/users/:id", async (req, res) => {
     }
 });
 
+
+
+//menu routes
+
+app.post('/menu-items', verifyToken, verifyVendor, async (req, res) => {
+    const data = req.body
+    const result = await menuitems.insertOne(data)
+    res.send(result)
+})
 
 
 
