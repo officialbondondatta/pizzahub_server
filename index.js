@@ -63,7 +63,6 @@ const verifyToken = async (req, res, next) => {
         return
     }
     req.user = user
-    console.log(user)
     next()
 }
 
@@ -73,7 +72,6 @@ const verifyVendor = async (req, res, next) => {
         res.status(401).send({ message: "Unauthorized" })
         return
     }
-    console.log("verified vendor")
     next()
 }
 const verifyAdmin = async (req, res, next) => {
@@ -136,6 +134,33 @@ app.post('/menu-items', verifyToken, verifyVendor, async (req, res) => {
 app.get('/menu-items', async (req, res) => {
     const result = await menuitems.find({}).toArray()
     res.send(result)
+})
+
+app.delete('/menu-items/:id', verifyToken, verifyVendor, async (res, req) => {
+    const id = req.params.id
+    const query = { '_id': new ObjectId(id) }
+    const result = await menuitems.deleteOne(query)
+    res.send(result)
+})
+
+app.patch('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
+    const data = req.body
+    const id = req.params.id
+    const query = { '_id': new ObjectId(id) }
+    const options = { upsert: true }
+    const updatedData = {
+        $set: {
+            name: data.name,
+            category: data.category,
+            price: data.price,
+            description: data.description,
+            location: data.location,
+            image: data.image
+        }
+    }
+    const result = await menuitems.updateOne(query, updatedData, options)
+    res.send(result)
+
 })
 
 app.get('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
