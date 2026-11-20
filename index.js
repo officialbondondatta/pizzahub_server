@@ -146,12 +146,12 @@ app.delete('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
 app.patch('/menu-items/availability/:id', verifyToken, verifyVendor, async (req, res) => {
     const data = req.body
     const id = req.params.id
-    const query = { '_id': new ObjectId(id) }
-    if (typeof data.isActive !== 'boolean') {
+    if (typeof data?.isActive !== 'boolean') {
         return res.status(400).send({
             message: 'isActive must be a boolean'
         });
     }
+    const query = { '_id': new ObjectId(id) }
     const updatedAvailability = {
         $set: {
             isActive: data.isActive
