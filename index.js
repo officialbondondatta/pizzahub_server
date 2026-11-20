@@ -136,10 +136,28 @@ app.get('/menu-items', async (req, res) => {
     res.send(result)
 })
 
-app.delete('/menu-items/:id', verifyToken, verifyVendor, async (res, req) => {
+app.delete('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
     const id = req.params.id
     const query = { '_id': new ObjectId(id) }
     const result = await menuitems.deleteOne(query)
+    res.send(result)
+})
+
+app.patch('/menu-items/availability/:id', verifyToken, verifyVendor, async (req, res) => {
+    const data = req.body
+    const id = req.params.id
+    const query = { '_id': new ObjectId(id) }
+    if (typeof data.isActive !== 'boolean') {
+        return res.status(400).send({
+            message: 'isActive must be a boolean'
+        });
+    }
+    const updatedAvailability = {
+        $set: {
+            isActive: data.isActive
+        }
+    }
+    const result = await menuitems.updateOne(query, updatedAvailability)
     res.send(result)
 })
 
