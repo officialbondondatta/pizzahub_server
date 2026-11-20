@@ -33,6 +33,7 @@ const db = mongoClient.db("pizzahub");
 const users = db.collection("user");
 const sessions = db.collection("session")
 const menuitems = db.collection("menuitems")
+const transactions = db.collection("transactions")
 
 
 const verifyToken = async (req, res, next) => {
@@ -90,6 +91,22 @@ const verifyCustomer = async (req, res, next) => {
     }
     next()
 }
+
+//transactions route
+
+app.get('/transactions', verifyToken, verifyAdmin, async (req, res) => {
+    const response = await transactions.find({}).toArray()
+    const result = response.json()
+    res.send(result)
+})
+app.post('/transactions', verifyToken, verifyVendor, async (req, res) => {
+    const data = req.body
+    const response = await transactions.insertOne(data)
+    const result = response.json()
+    res.send(result)
+})
+
+
 
 //user routes
 app.get("/users", verifyToken, async (req, res) => {
