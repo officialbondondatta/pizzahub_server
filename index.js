@@ -34,7 +34,7 @@ const users = db.collection("user");
 const sessions = db.collection("session")
 const menuitems = db.collection("menuitems")
 const transactions = db.collection("transactions")
-
+const orders = db.collection("orders")
 
 const verifyToken = async (req, res, next) => {
     const authHeader = req.headers.authorization
@@ -100,6 +100,38 @@ const verifyCustomer = async (req, res, next) => {
     next()
 }
 
+//customer routes
+
+app.post('/order', verifyToken, verifyCustomer, async (req, res) => {
+    const data = req.body
+    const itemId = data.menuItemId
+    const user = req.user._id.toString()
+    const query = { "customerId": user, "menuItemId": itemId, "status": "Pending" }
+    const order = await orders.findOne(query)
+    console.log("order", order)
+    console.log(order && order.status === "Pending")
+    if (order) {
+        return res.send({ message: "Order already exists" })
+    }
+    const result = await orders.insertOne(data)
+    res.send(result)
+})
+
+//only-customer [ user specific orders]
+app.get('/order/:id', verifyToken, verifyCustomer, async (req, res) => {
+    const id = req.params.id
+    const query = { 'customerId': id }
+    const result = await orders.find(query).toArray()
+    res.send(result)
+})
+
+//only-vendor [ all orders]
+
+app.get('/order', verifyToken, verifyVendor, async (req, res) => {
+    const result = await orders.find().toArray()
+    res.send(result)
+})
+
 //transactions route
 
 app.get('/transactions', verifyToken, verifyAdmin, async (req, res) => {
@@ -153,6 +185,8 @@ app.post('/payment/checkout-verify', verifyToken, verifyVendor, async (req, res)
     }
     res.send({ success: false, message: "Payment verification false" })
 })
+
+
 
 
 //user routes
