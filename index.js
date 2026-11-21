@@ -127,7 +127,12 @@ app.get('/order/:id', verifyToken, verifyCustomer, async (req, res) => {
     }
     const query = { 'customerId': id }
     const result = await orders.find(query).toArray()
-    res.send(result)
+    res.send(
+        result.map(order => ({
+            ...order,
+            createdAt: order.createdAt || order._id.getTimestamp().toISOString(),
+        }))
+    )
 })
 
 //only-vendor [ all orders]
