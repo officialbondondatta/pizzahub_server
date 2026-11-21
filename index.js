@@ -247,6 +247,12 @@ app.patch('/menu-items/availability/:id', verifyToken, verifyVendorandAdmin, asy
         });
     }
     const query = { '_id': new ObjectId(id) }
+    const status = await menuitems.findOne(query, { projection: { status: 1 } })
+    const itemCurrentStatus = status.status
+    if ((itemCurrentStatus === "pending" || itemCurrentStatus === "rejected") && data.isActive === true) {
+        res.send({ message: `Status is ${itemCurrentStatus}` })
+        return
+    }
     const updatedAvailability = {
         $set: {
             isActive: data.isActive
