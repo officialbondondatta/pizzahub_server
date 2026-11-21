@@ -154,7 +154,7 @@ app.post('/payment/checkout-verify', verifyToken, verifyVendor, async (req, res)
 
 
 //user routes
-app.get("/users", verifyToken, async (req, res) => {
+app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
     try {
         const allUsers = await users.find({}).toArray();
         res.json(allUsers);
@@ -183,6 +183,17 @@ app.patch("/users/:id", verifyToken, async (req, res) => {
     }
 });
 
+app.patch("/users/block/:id", verifyToken, verifyAdmin, async (req, res) => {
+    const id = req.params.id
+    const query = { '_id': new ObjectId(id) }
+    const updatedDoc = {
+        $set: {
+            isActive: true
+        }
+    }
+    const result = await users.updateOne(query, updatedDoc)
+    res.send(result.json())
+})
 
 
 //menu routes
