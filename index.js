@@ -276,6 +276,24 @@ app.patch('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
 
 })
 
+
+app.patch('/menu-items/status/:id', verifyToken, verifyAdmin, async (req, res) => {
+    const id = req.params.id
+    const data = req.body
+    const query = { '_id': new ObjectId(id) }
+    const isActive = await menuitems.findOne(query, { projection: { isActive: 1 } })
+    console.log(isActive)
+    const value = data.status === "pending" || data.status === "rejected" ? false : isActive.isActive
+    const updatedDoc = {
+        $set: {
+            status: data.status,
+            isActive: value
+        }
+    }
+    const result = await menuitems.updateOne(query, updatedDoc)
+    res.send(result)
+})
+
 app.get('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
     const vendorId = req.params.id
     const result = await menuitems.find({ vendorId }).toArray()
