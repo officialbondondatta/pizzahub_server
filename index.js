@@ -205,7 +205,7 @@ app.patch("/users/block/:id", verifyToken, verifyAdmin, async (req, res) => {
 app.get('/menu-items/active-items/:id', verifyToken, verifyVendor, async (req, res) => {
     const id = req.params.id
     const itemsQuery = {
-        'userId': id,
+        'vendorId': id,
         isActive: true
     }
     const result = await menuitems.countDocuments(itemsQuery)
@@ -269,8 +269,8 @@ app.patch('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
 })
 
 app.get('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
-    const userId = req.params.id
-    const result = await menuitems.find({ userId }).toArray()
+    const vendorId = req.params.id
+    const result = await menuitems.find({ vendorId }).toArray()
     res.send(result)
 })
 
