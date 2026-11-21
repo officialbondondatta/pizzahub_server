@@ -75,6 +75,14 @@ const verifyVendor = async (req, res, next) => {
     }
     next()
 }
+const verifyVendorandAdmin = async (req, res, next) => {
+    const user = req.user
+    if (user.role !== "vendor" && user.role !== "admin") {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+    next()
+}
 const verifyAdmin = async (req, res, next) => {
     const user = req.user
     if (user.role !== "admin") {
@@ -230,7 +238,7 @@ app.delete('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
     res.send(result)
 })
 
-app.patch('/menu-items/availability/:id', verifyToken, verifyVendor, async (req, res) => {
+app.patch('/menu-items/availability/:id', verifyToken, verifyVendorandAdmin, async (req, res) => {
     const data = req.body
     const id = req.params.id
     if (typeof data?.isActive !== 'boolean') {
