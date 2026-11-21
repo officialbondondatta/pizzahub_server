@@ -192,7 +192,7 @@ app.patch("/users/block/:id", verifyToken, verifyAdmin, async (req, res) => {
     }
     const updatedDoc = {
         $set: {
-            isActive: !user.isActive
+            isBlocked: !user.isBlocked
         }
     }
     const result = await users.updateOne(query, updatedDoc)
