@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { MongoClient, ObjectId } from "mongodb";
-
+import Stripe from 'stripe'
 dotenv.config();
 const app = express();
 app.use(cors());
@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 8001;
 //mongodb_connection
 
 const client = new MongoClient(process.env.MONGODB_URI);
-
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const connectToMongoDB = async () => {
     try {
         await client.connect();
@@ -106,6 +106,51 @@ app.post('/transactions', verifyToken, verifyVendor, async (req, res) => {
     res.send(result)
 })
 
+//payment
+app.post('/payment/checkout-verify', verifyToken, verifyVendor, async (req, res) => {
+    const { sessionId } = req.body
+    if (!sessionId) {
+        return res.send({ success: false, message: "SessionId required for payment" })
+    }
+    const {
+        payment_status,
+        status,
+        metadata,
+        amount_total,
+        currency,
+    } = await stripe.checkout.sessions.retrieve(sessionId)
+
+    if (status === "complete" && payment_status === "paid") {
+
+        const sessionQuery = { stripeSessionId: sessionId }
+        const isExist = await transactions.findOne(sessionQuery)
+        if (isExist) {
+            return res.send({ success: false, message: "Payment already verified" })
+        }
+        const payment = {
+            vendorId: metadata.userId,
+            stripeSessionId: sessionId,
+            stripeSubscriptionId: "acb",
+            plan: "premium",
+            amount: amount_total,
+            currency: currency,
+            status: status,
+            payment_date: new Date()
+        }
+        const result = await transactions.insertOne(payment)
+
+        const updatedDoc = {
+            $set: {
+                plan: "premium"
+            }
+        }
+        const query = { '_id': new ObjectId(metadata.userId) }
+        const updationResult = await users.updateOne(query, updatedDoc)
+        res.send({ success: true, result, updationResult })
+        return
+    }
+    res.send({ success: false, message: "Payment verification false" })
+})
 
 
 //user routes
@@ -141,6 +186,16 @@ app.patch("/users/:id", verifyToken, async (req, res) => {
 
 
 //menu routes
+
+app.get('/menu-items/active-items/:id', verifyToken, verifyVendor, async (req, res) => {
+    const id = req.params.id
+    const itemsQuery = {
+        'userId': id,
+        isActive: true
+    }
+    const result = await menuitems.countDocuments(itemsQuery)
+    res.send(result)
+})
 
 app.post('/menu-items', verifyToken, verifyVendor, async (req, res) => {
     const data = req.body
