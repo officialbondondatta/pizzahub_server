@@ -120,6 +120,11 @@ app.post('/order', verifyToken, verifyCustomer, async (req, res) => {
 //only-customer [ user specific orders]
 app.get('/order/:id', verifyToken, verifyCustomer, async (req, res) => {
     const id = req.params.id
+    const user = req.user
+    const checkId = new ObjectId(id)
+    if (!user._id.equals(checkId)) {
+        return res.send({ message: "You can not access these orders" })
+    }
     const query = { 'customerId': id }
     const result = await orders.find(query).toArray()
     res.send(result)
