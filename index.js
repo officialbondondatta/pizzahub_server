@@ -104,15 +104,9 @@ const verifyCustomer = async (req, res, next) => {
 
 app.get('/transactions', verifyToken, verifyAdmin, async (req, res) => {
     const response = await transactions.find({}).toArray()
-    const result = response.json()
-    res.send(result)
+    res.send(response)
 })
-app.post('/transactions', verifyToken, verifyVendor, async (req, res) => {
-    const data = req.body
-    const response = await transactions.insertOne(data)
-    const result = response.json()
-    res.send(result)
-})
+
 
 //payment
 app.post('/payment/checkout-verify', verifyToken, verifyVendor, async (req, res) => {
@@ -231,7 +225,7 @@ app.get('/menu-items', async (req, res) => {
     res.send(result)
 })
 
-app.delete('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
+app.delete('/menu-items/:id', verifyToken, verifyVendorandAdmin, async (req, res) => {
     const id = req.params.id
     const query = { '_id': new ObjectId(id) }
     const result = await menuitems.deleteOne(query)
