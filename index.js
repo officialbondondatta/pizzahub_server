@@ -296,6 +296,10 @@ app.patch("/users/block/:id", verifyToken, verifyAdmin, async (req, res) => {
     if (!user) {
         return res.status(404).send({ message: "User not found" })
     }
+    if (user.role === "admin") {
+        console.log("yeaa")
+        return res.send({ message: "Admin can not block admins" })
+    }
     const updatedDoc = {
         $set: {
             isBlocked: !user.isBlocked
