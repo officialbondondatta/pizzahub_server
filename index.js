@@ -323,9 +323,12 @@ app.get('/menu-items/active-items/:id', verifyToken, verifyVendor, async (req, r
 })
 
 app.post('/menu-items', verifyToken, verifyVendor, async (req, res) => {
-    const data = req.body
+    const data = {
+        ...req.body,
+        createdAt: new Date().toISOString()
+    }
     const result = await menuitems.insertOne(data)
-    res.send(result)
+    res.send({ ...result, createdAt: data.createdAt })
 })
 
 app.get('/menu-items', async (req, res) => {
