@@ -323,12 +323,9 @@ app.get('/menu-items/active-items/:id', verifyToken, verifyVendor, async (req, r
 })
 
 app.post('/menu-items', verifyToken, verifyVendor, async (req, res) => {
-    const data = {
-        ...req.body,
-        createdAt: new Date().toISOString()
-    }
+    const data = req.body
     const result = await menuitems.insertOne(data)
-    res.send({ ...result, createdAt: data.createdAt })
+    res.send(result)
 })
 
 app.get('/menu-items', async (req, res) => {
@@ -407,13 +404,22 @@ app.patch('/menu-items/status/:id', verifyToken, verifyAdmin, async (req, res) =
 app.get('/menu-items/:id', verifyToken, verifyVendor, async (req, res) => {
     const vendorId = req.params.id
     const result = await menuitems.find({ vendorId }).toArray()
-    res.send(result)
+    res.send(result.map(item => ({
+        ...item,
+        createdAt: item.createdAt || item._id.getTimestamp().toISOString()
+    })))
 })
 
 app.get('/menu-items/details/:id', verifyToken, async (req, res) => {
     const itemId = req.params.id
     const query = { '_id': new ObjectId(itemId) }
     const result = await menuitems.findOne(query)
+    if (result && (req.user.role === 'vendor' || req.user.role === 'admin')) {
+        return res.send({
+            ...result,
+            createdAt: result.createdAt || result._id.getTimestamp().toISOString()
+        })
+    }
     res.send(result)
 })
 
