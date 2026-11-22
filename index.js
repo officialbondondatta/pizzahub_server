@@ -83,6 +83,14 @@ const verifyVendorandAdmin = async (req, res, next) => {
     }
     next()
 }
+const verifyVendorandCustomer = async (req, res, next) => {
+    const user = req.user
+    if (user.role !== "vendor" && user.role !== "customer") {
+        res.status(401).send({ message: "Unauthorized" })
+        return
+    }
+    next()
+}
 const verifyAdmin = async (req, res, next) => {
     const user = req.user
     if (user.role !== "admin") {
@@ -106,10 +114,10 @@ app.post('/order', verifyToken, verifyCustomer, async (req, res) => {
     const data = req.body
     const itemId = data.menuItemId
     const user = req.user._id.toString()
-    const query = { "customerId": user, "menuItemId": itemId, "status": "Pending" }
+    const query = { "customerId": user, "menuItemId": itemId, "status": "pending" }
     const order = await orders.findOne(query)
     console.log("order", order)
-    console.log(order && order.status === "Pending")
+    console.log(order && order.status === "pending")
     if (order) {
         return res.send({ message: "Order already exists" })
     }
@@ -133,6 +141,45 @@ app.get('/order/:id', verifyToken, verifyCustomer, async (req, res) => {
             createdAt: order.createdAt || order._id.getTimestamp().toISOString(),
         }))
     )
+})
+app.patch('/order/:id', verifyToken, verifyVendor, async (req, res) => {
+    const id = req.params.id
+    const user = req.user
+    const checkId = new ObjectId(id)
+    if (!user._id.equals(checkId)) {
+        return res.send({ message: "You can not access these orders" })
+    }
+    const query = { '_id': new ObjectId(id) }
+    const updatedDoc = {
+        $set: {
+            status: "cancelled"
+        }
+    }
+    const result = await orders.updateOne(query).toArray()
+    res.send(result)
+
+})
+
+app.patch('/order/cancel/:id', verifyToken, verifyCustomer, async (req, res) => {
+    const id = req.params.id
+    const orderQuery = { _id: new ObjectId(id) }
+
+    const user = req.user
+    const orderToBeCancelled = await orders.findOne(orderQuery)
+
+    console.log("Will be cancelled", orderToBeCancelled)
+
+
+    if (orderToBeCancelled.customerId !== user._id.toString()) {
+        return res.send({ message: "You are not authorized to cancel this order" })
+    }
+    const updatedDoc = {
+        $set: {
+            status: "cancelled"
+        }
+    }
+    const result = await orders.updateOne(orderQuery, updatedDoc)
+    res.send(result)
 })
 
 //only-vendor [ all orders]
