@@ -70,7 +70,7 @@ const verifyToken = async (req, res, next) => {
 const verifyVendor = async (req, res, next) => {
     const user = req.user
     if (user.role !== "vendor") {
-        res.status(401).send({ message: "Unauthorized" })
+        res.status(403).send({ message: "Forbidden" })
         return
     }
     next()
@@ -78,7 +78,7 @@ const verifyVendor = async (req, res, next) => {
 const verifyVendorandAdmin = async (req, res, next) => {
     const user = req.user
     if (user.role !== "vendor" && user.role !== "admin") {
-        res.status(401).send({ message: "Unauthorized" })
+        res.status(403).send({ message: "Forbidden" })
         return
     }
     next()
@@ -86,7 +86,7 @@ const verifyVendorandAdmin = async (req, res, next) => {
 const verifyAdmin = async (req, res, next) => {
     const user = req.user
     if (user.role !== "admin") {
-        res.status(401).send({ message: "Unauthorized" })
+        res.status(403).send({ message: "Forbidden" })
         return
     }
     next()
@@ -94,7 +94,7 @@ const verifyAdmin = async (req, res, next) => {
 const verifyCustomer = async (req, res, next) => {
     const user = req.user
     if (user.role !== "customer") {
-        res.status(401).send({ message: "Unauthorized" })
+        res.status(403).send({ message: "Forbidden" })
         return
     }
     next()
@@ -121,7 +121,7 @@ app.get('/order/:id', verifyToken, verifyCustomer, async (req, res) => {
     const user = req.user
     const checkId = new ObjectId(id)
     if (!user._id.equals(checkId)) {
-        return res.send({ message: "You can not access these orders" })
+        return res.status(403).send({ message: "You can not access these orders" })
     }
     const query = { 'customerId': id }
     const result = await orders.find(query).toArray()
@@ -149,7 +149,7 @@ app.patch('/order/:id', verifyToken, verifyVendor, async (req, res) => {
     }
 
     if (userId.toString() !== updatableOrder.vendorId.toString()) {
-        return res.send({ message: "You can not access these orders" })
+        return res.status(403).send({ message: "You can not access these orders" })
     }
     const query = { '_id': new ObjectId(id) }
     const updatedDoc = {
@@ -170,7 +170,7 @@ app.patch('/order/cancel/:id', verifyToken, verifyCustomer, async (req, res) => 
     const orderToBeCancelled = await orders.findOne(orderQuery)
 
     if (orderToBeCancelled.customerId !== user._id.toString()) {
-        return res.send({ message: "You are not authorized to cancel this order" })
+        return res.status(403).send({ message: "You are not authorized to cancel this order" })
     }
     const updatedDoc = {
         $set: {
