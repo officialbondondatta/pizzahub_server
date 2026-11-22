@@ -83,14 +83,6 @@ const verifyVendorandAdmin = async (req, res, next) => {
     }
     next()
 }
-const verifyVendorandCustomer = async (req, res, next) => {
-    const user = req.user
-    if (user.role !== "vendor" && user.role !== "customer") {
-        res.status(401).send({ message: "Unauthorized" })
-        return
-    }
-    next()
-}
 const verifyAdmin = async (req, res, next) => {
     const user = req.user
     if (user.role !== "admin") {
@@ -180,7 +172,10 @@ app.patch('/order/cancel/:id', verifyToken, verifyCustomer, async (req, res) => 
 //only-vendor [ all orders]
 
 app.get('/order', verifyToken, verifyVendor, async (req, res) => {
-    const result = await orders.find().toArray()
+    const user = req.user
+    const query = { 'vendorId': user._id.toString() }
+    const result = await orders.find(query).toArray()
+    console.log(result)
     res.send(result)
 })
 
