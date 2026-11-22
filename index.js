@@ -116,8 +116,6 @@ app.post('/order', verifyToken, verifyCustomer, async (req, res) => {
     const user = req.user._id.toString()
     const query = { "customerId": user, "menuItemId": itemId, "status": "pending" }
     const order = await orders.findOne(query)
-    console.log("order", order)
-    console.log(order && order.status === "pending")
     if (order) {
         return res.send({ message: "Order already exists" })
     }
@@ -166,9 +164,6 @@ app.patch('/order/cancel/:id', verifyToken, verifyCustomer, async (req, res) => 
 
     const user = req.user
     const orderToBeCancelled = await orders.findOne(orderQuery)
-
-    console.log("Will be cancelled", orderToBeCancelled)
-
 
     if (orderToBeCancelled.customerId !== user._id.toString()) {
         return res.send({ message: "You are not authorized to cancel this order" })
@@ -373,7 +368,6 @@ app.patch('/menu-items/status/:id', verifyToken, verifyAdmin, async (req, res) =
     const data = req.body
     const query = { '_id': new ObjectId(id) }
     const isActive = await menuitems.findOne(query, { projection: { isActive: 1 } })
-    console.log(isActive)
     const value = data.status === "pending" || data.status === "rejected" ? false : isActive.isActive
     const updatedDoc = {
         $set: {
