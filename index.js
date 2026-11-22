@@ -200,7 +200,10 @@ app.get('/order', verifyToken, verifyVendor, async (req, res) => {
 
 app.get('/transactions', verifyToken, verifyAdmin, async (req, res) => {
     const response = await transactions.find({}).toArray()
-    res.send(response)
+    res.send(response.map(transaction => ({
+        ...transaction,
+        createdAt: transaction.createdAt || transaction._id.getTimestamp().toISOString()
+    })))
 })
 
 
