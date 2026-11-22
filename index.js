@@ -188,7 +188,12 @@ app.get('/order', verifyToken, verifyVendor, async (req, res) => {
     const query = { 'vendorId': user._id.toString() }
     const result = await orders.find(query).toArray()
     console.log(result)
-    res.send(result)
+    res.send(
+        result.map(order => ({
+            ...order,
+            createdAt: order.createdAt || order._id.getTimestamp().toISOString(),
+        }))
+    )
 })
 
 //transactions route
