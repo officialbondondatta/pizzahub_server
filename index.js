@@ -239,10 +239,13 @@ app.post('/payment/checkout-verify', verifyToken, verifyVendor, async (req, res)
             payment_date: new Date()
         }
         const result = await transactions.insertOne(payment)
+        const subscriptionExpiresAt = new Date()
+        subscriptionExpiresAt.setDate(subscriptionExpiresAt.getDate() + 60)
 
         const updatedDoc = {
             $set: {
-                plan: "premium"
+                plan: "premium",
+                subscriptionExpiresAt: subscriptionExpiresAt
             }
         }
         const query = { '_id': new ObjectId(metadata.userId) }
