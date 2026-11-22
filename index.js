@@ -134,18 +134,30 @@ app.get('/order/:id', verifyToken, verifyCustomer, async (req, res) => {
 })
 app.patch('/order/:id', verifyToken, verifyVendor, async (req, res) => {
     const id = req.params.id
+    const data = req.body
     const user = req.user
-    const checkId = new ObjectId(id)
-    if (!user._id.equals(checkId)) {
+
+
+    const userId = user?._id
+    const orderQuery = { '_id': new ObjectId(id) }
+
+    const updatableOrder = await orders.findOne(orderQuery)
+
+    if (!updatableOrder) {
+        res.send({ message: "Order does not exists" })
+        return
+    }
+
+    if (userId.toString() !== updatableOrder.vendorId.toString()) {
         return res.send({ message: "You can not access these orders" })
     }
     const query = { '_id': new ObjectId(id) }
     const updatedDoc = {
         $set: {
-            status: "cancelled"
+            status: data.status
         }
     }
-    const result = await orders.updateOne(query).toArray()
+    const result = await orders.updateOne(query, updatedDoc)
     res.send(result)
 
 })
@@ -246,6 +258,12 @@ app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
         res.status(500).send("Error fetching users");
     }
 });
+
+app.get('/users/info', verifyToken, verifyVendor, async (req, res) => {
+    const query = { 'role': "customer" }
+    const result = await users.find(query, { projection: { name: 1, image: 1, email: 1 } }).toArray()
+    res.send(result)
+})
 
 app.patch("/users/:id", verifyToken, async (req, res) => {
     const { id } = req.params;
