@@ -270,6 +270,23 @@ app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
     }
 });
 
+app.patch("/users/cancel/subscription/:id", verifyToken, verifyVendorandAdmin, async (req, res) => {
+    try {
+        const id = req.params.id
+        const query = { '_id': new ObjectId(id) }
+        const updatedDoc = {
+            $set: {
+                plan: "free"
+            }
+        }
+        const result = await users.updateOne(query, updatedDoc)
+        res.json(result);
+    } catch (err) {
+        console.dir(err);
+        res.status(500).send("Error cancelling subscription");
+    }
+});
+
 app.get('/users/info', verifyToken, verifyVendor, async (req, res) => {
     const query = { 'role': "customer" }
     const result = await users.find(query, { projection: { name: 1, image: 1, email: 1 } }).toArray()
